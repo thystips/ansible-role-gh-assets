@@ -4,7 +4,7 @@
 
 galaxy_info:
   role_name: gh_assets
-  author: ThysTips
+  author: thystips
   description: This role downloads assets from a GitHub Release on repository.
 
   license: GPL-3.0-or-later
