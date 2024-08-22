@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2024 ThysTips <contact@thystips.net>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+gh_assets_github_api: "https://api.github.com"
+
+gh_assets_github_release_endpoint: "{{ gh_assets_github_api }}/repos/{{ gh_assets_src.owner | mandatory }}/{{ gh_assets_src.repo | mandatory }}/releases"
+
+gh_assets_dst_path: "{{ gh_assets_dst.path | default('/tmp') }}"
+
+gh_assets_headers: {
+  "x-github-api-version": "{{ gh_assets_github_api_version }}"
+}

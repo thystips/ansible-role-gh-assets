@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2024 ThysTips <contact@thystips.net>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# Your GitHub token
+gh_assets_github_token: "{{ lookup('env', 'GH_TOKEN', default=None) }}"
+# Can be "Bearer" or "token" (https://docs.github.com/fr/rest/authentication/authenticating-to-the-rest-api?apiVersion=2022-11-28)
+gh_assets_github_token_type: "Bearer"
+
+gh_assets_github_api_version: "2022-11-28"
+
+gh_assets_src: {}
+  # owner: "grafana"
+  # repo: "mimir"
+  # tag: "latest" # or a specific tag
+  # download_sources_tarball: false
+  # download_assets: true # if false, download_all_assets must be true or nothing will be downloaded
+  # download_all_assets: true
+  # asset_name: # used if download_all_assets is false and get first asset if not specified
+
+gh_assets_dst: {}
+  # path: "/tmp" # this must be a directory
+  # asset_name: # not applicable for download_all_assets and download_sources_tarball
+  # tarball_name: # used ONLY with download_sources_tarball
+  # owner: "root" # optional
+  # group: "root" # optional
+  # mode: "0644"

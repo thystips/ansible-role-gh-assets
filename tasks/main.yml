@@ -1,0 +1,120 @@
+# SPDX-FileCopyrightText: 2024 ThysTips <contact@thystips.net>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+- name: Set release url
+  ansible.builtin.set_fact:
+    _gh_assets_api_url: "{{ gh_assets_github_release_endpoint }}/tags/{{ gh_assets_src.tag }}"
+  when: gh_assets_src.tag is defined and gh_assets_src.tag | length > 0 and gh_assets_src.tag != 'latest'
+  tags:
+    - gh_assets
+    - gh_assets_release_url
+
+- name: Set Authorization header for GitHub API
+  ansible.builtin.set_fact:
+    _gh_assets_auth_header:
+      {
+        "Authorization": "{{ gh_assets_github_token_type | default(omit) }} {{ gh_assets_github_token | default(omit) }}",
+      }
+  when: gh_assets_github_token is defined and gh_assets_github_token | length > 0
+  tags:
+    - gh_assets
+    - gh_assets_headers
+
+- name: Set headers for GitHub API
+  ansible.builtin.set_fact:
+    _gh_assets_headers: "{{ gh_assets_headers | default({}) | combine(_gh_assets_auth_header | default({})) }}"
+  tags:
+    - gh_assets
+    - gh_assets_headers
+
+- name: Get GitHub release details"
+  ansible.builtin.uri:
+    url: "{{ _gh_assets_api_url | default(gh_assets_github_release_endpoint + '/latest') }}"
+    return_content: true
+    headers: "{{ _gh_assets_headers | default({}) | combine({'Accept': 'application/vnd.github+json'}) }}"
+  register: "_gh_assets_release"
+  tags:
+    - gh_assets
+    - gh_assets_release
+
+- name: Create download directory
+  ansible.builtin.file:
+    path: "{{ gh_assets_dst_path }}"
+    state: directory
+    owner: "{{ gh_assets_dst.owner | default(omit) }}"
+    group: "{{ gh_assets_dst.group | default(omit) }}"
+    mode: "{{ gh_assets_dst.mode | default(omit) }}"
+  tags:
+    - gh_assets
+    - gh_assets_dst_add
+
+- name: Download release tarball from GitHub"
+  ansible.builtin.get_url:
+    url: "https://github.com/{{ gh_assets_src.owner }}/{{ gh_assets_src.repo }}/archive/refs/tags/{{ _gh_assets_tarball_src_name }}"
+    dest: "{{ gh_assets_dst_path }}/{{ _gh_assets_tarball_dest_name }}"
+    owner: "{{ gh_assets_dst.owner | default(omit) }}"
+    group: "{{ gh_assets_dst.group | default(omit) }}"
+    mode: "{{ gh_assets_dst.mode | default(omit) }}"
+    headers: "{{ _gh_assets_headers | default({}) | combine({'Accept': 'application/octet-stream'}) }}"
+  when: gh_assets_src.download_sources_tarball | default(false) | bool
+  vars:
+    _gh_assets_tarball_src_name: "{{ gh_assets_src.repo }}-{{ _gh_assets_release.json.tag_name }}.tar.gz"
+    _gh_assets_tarball_dest_name: "{{ gh_assets_dst.tarball_name | default(_gh_assets_tarball_src_name) }}"
+  tags:
+    - gh_assets
+    - gh_assets_tarball_add
+
+- name: Download all assets from GitHub release"
+  ansible.builtin.get_url:
+    url: "{{ item.browser_download_url }}"
+    dest: "{{ gh_assets_dst_path }}/{{ item.name }}"
+    owner: "{{ gh_assets_dst.owner | default(omit) }}"
+    group: "{{ gh_assets_dst.group | default(omit) }}"
+    mode: "{{ gh_assets_dst.mode | default(omit) }}"
+    headers: "{{ _gh_assets_headers | default({}) | combine({'Accept': 'application/octet-stream'}) }}"
+  loop: "{{ _gh_assets_release.json.assets }}"
+  when: gh_assets_src.download_all_assets | default(false) | bool and download_assets | default(true) | bool
+  tags:
+    - gh_assets
+    - gh_assets_assets_get
+
+- name: Download a single asset from GitHub release"
+  when: not gh_assets_src.download_all_assets | default(false) | bool and download_assets | default(true) | bool
+  tags:
+    - gh_assets
+    - gh_assets_asset_url
+    - gh_assets_asset_get
+  block:
+    - name: Get asset URL
+      ansible.builtin.set_fact:
+        _gh_assets_url: "{{ _gh_assets_release.json.assets
+          | selectattr('name', 'equalto', gh_assets_src.asset_name)
+          | map(attribute='url')
+          | first }}"
+        _gh_assets_name: "{{ gh_assets_src.asset_name }}"
+      when: gh_assets_src.asset_name is defined and gh_assets_src.asset_name | length > 0
+      tags:
+        - gh_assets
+        - gh_assets_asset_url
+
+    - name: Get asset URL
+      ansible.builtin.set_fact:
+        _gh_assets_url: "{{ _gh_assets_release.json.assets[0].url }}"
+        _gh_assets_name: "{{ _gh_assets_release.json.assets[0].name }}"
+      when: _gh_assets_url is not defined or _gh_assets_url | length == 0
+      tags:
+        - gh_assets
+        - gh_assets_asset_url
+
+    - name: Download asset
+      ansible.builtin.get_url:
+        url: "{{ _gh_assets_url | mandatory }}"
+        dest: "{{ gh_assets_dst_path | mandatory }}/{{ gh_assets_dst.asset_name | default(_gh_assets_name) }}"
+        owner: "{{ gh_assets_dst.owner | default(omit) }}"
+        group: "{{ gh_assets_dst.group | default(omit) }}"
+        mode: "{{ gh_assets_dst.mode | default(omit) }}"
+        headers: "{{ _gh_assets_headers | default({}) | combine({'Accept': 'application/octet-stream'}) }}"
+      tags:
+        - gh_assets
+        - gh_assets_asset_get
