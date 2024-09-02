@@ -28,7 +28,7 @@
     - gh_assets
     - gh_assets_headers
 
-- name: Get GitHub release details"
+- name: Get GitHub release details
   ansible.builtin.uri:
     url: "{{ _gh_assets_api_url | default(gh_assets_github_release_endpoint + '/latest') }}"
     return_content: true

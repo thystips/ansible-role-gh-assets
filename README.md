@@ -22,7 +22,7 @@ N/A
 Role Variables
 --------------
 
-- `gh_assets_github_pat` | str : Github Personal Access Token to access private repositories (check `GH_TOKEN` env variable if unset).
+- `gh_assets_github_token` | str : Github Personal Access Token to access private repositories (check `GH_TOKEN` env variable if unset).
 - `gh_assets_github_api_version` | str : Github API version to use (default: `2022-11-28` : [](https://docs.github.com/fr/rest/about-the-rest-api/api-versions)).
 - `gh_assets_src` | {} : Object containing the source repository and release to download assets from.
   - `repo` | str : Repository name
@@ -53,7 +53,7 @@ Including an example of how to use your role (for instance, with variables passe
     - hosts: servers
       roles:
          - role: weytop.infrastructure.gh_assets
-           gh_assets_github_pat: "your_github_token"
+           gh_assets_github_token: "your_github_token"
            gh_assets_src:
              owner: "grafana"
              repo: "mimir"
