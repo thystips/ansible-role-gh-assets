@@ -67,7 +67,7 @@
 
 - name: Download all assets from GitHub release"
   ansible.builtin.get_url:
-    url: "{{ item.browser_download_url }}"
+    url: "{{ item.url }}"
     dest: "{{ gh_assets_dst_path }}/{{ item.name }}"
     owner: "{{ gh_assets_dst.owner | default(omit) }}"
     group: "{{ gh_assets_dst.group | default(omit) }}"
