@@ -25,3 +25,8 @@ gh_assets_dst: {}
   # owner: "root" # optional
   # group: "root" # optional
   # mode: "0644"
+
+gh_assets_environment: {}
+  # http_proxy: "http://proxy.example.com:8080/"
+  # https_proxy: "http://proxy.example.com:8080/"
+  # no_proxy: "localhost,127.0.0.1"

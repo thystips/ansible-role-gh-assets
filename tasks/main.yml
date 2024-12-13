@@ -33,6 +33,7 @@
     url: "{{ _gh_assets_api_url | default(gh_assets_github_release_endpoint + '/latest') }}"
     return_content: true
     headers: "{{ _gh_assets_headers | default({}) | combine({'Accept': 'application/vnd.github+json'}) }}"
+  environment: "{{ gh_assets_environment | default({}) }}"
   register: "_gh_assets_release"
   tags:
     - gh_assets
@@ -57,6 +58,7 @@
     group: "{{ gh_assets_dst.group | default(omit) }}"
     mode: "{{ gh_assets_dst.mode | default(omit) }}"
     headers: "{{ _gh_assets_headers | default({}) | combine({'Accept': 'application/octet-stream'}) }}"
+  environment: "{{ gh_assets_environment | default({}) }}"
   when: gh_assets_src.download_sources_tarball | default(false) | bool
   vars:
     _gh_assets_tarball_src_name: "{{ gh_assets_src.repo }}-{{ _gh_assets_release.json.tag_name }}.tar.gz"
@@ -73,6 +75,7 @@
     group: "{{ gh_assets_dst.group | default(omit) }}"
     mode: "{{ gh_assets_dst.mode | default(omit) }}"
     headers: "{{ _gh_assets_headers | default({}) | combine({'Accept': 'application/octet-stream'}) }}"
+  environment: "{{ gh_assets_environment | default({}) }}"
   loop: "{{ _gh_assets_release.json.assets }}"
   when: gh_assets_src.download_all_assets | default(false) | bool and download_assets | default(true) | bool
   tags:
@@ -115,6 +118,7 @@
         group: "{{ gh_assets_dst.group | default(omit) }}"
         mode: "{{ gh_assets_dst.mode | default(omit) }}"
         headers: "{{ _gh_assets_headers | default({}) | combine({'Accept': 'application/octet-stream'}) }}"
+      environment: "{{ gh_assets_environment | default({}) }}"
       tags:
         - gh_assets
         - gh_assets_asset_get
